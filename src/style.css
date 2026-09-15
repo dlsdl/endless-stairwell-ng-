@@ -1,0 +1,424 @@
+/* ------------------------------------------------------------------ *
+ * 无尽的楼梯间 NG++ —— 像素风全局样式
+ * ------------------------------------------------------------------ */
+:root {
+  --bg: #0b0a12;
+  --panel: #1b1730;
+  --panel-2: #26203f;
+  --panel-3: #322a52;
+  --line: #05040a;
+  --ink: #e9e6ff;
+  --muted: #9a92c9;
+  --gold: #ffd166;
+  --hp: #ff5c6c;
+  --energy: #4fc3f7;
+  --xp: #b388ff;
+  --green: #74e39b;
+  --pink: #ff8fd0;
+  --shadow: 4px 4px 0 var(--line);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+}
+
+body {
+  background-color: var(--bg);
+  background-image:
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.025) 0 2px, transparent 2px 4px),
+    radial-gradient(circle at 20% 0%, #241d3d 0%, transparent 55%),
+    radial-gradient(circle at 85% 100%, #1d2a3d 0%, transparent 50%);
+  color: var(--ink);
+  font-family: 'Press Start 2P', 'DotGothic16', 'Zpix', 'Fusion Pixel', 'Courier New', ui-monospace,
+    monospace;
+  font-size: 14px;
+  line-height: 1.8;
+  image-rendering: pixelated;
+  -webkit-font-smoothing: none;
+}
+
+#app {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 12px;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  margin: 0;
+  font-weight: 400;
+  letter-spacing: 1px;
+}
+
+a {
+  color: var(--gold);
+}
+
+/* ---------- 面板 ---------- */
+.panel {
+  background: var(--panel);
+  border: 2px solid var(--line);
+  box-shadow: var(--shadow);
+  padding: 10px 12px;
+  margin-bottom: 12px;
+}
+
+.panel-title {
+  font-size: 14px;
+  color: var(--gold);
+  margin-bottom: 8px;
+  padding-bottom: 6px;
+  border-bottom: 2px dashed #3c3464;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.sub {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.grid {
+  display: grid;
+  gap: 6px;
+}
+
+/* ---------- 按钮 ---------- */
+.btn {
+  font-family: inherit;
+  font-size: 13px;
+  color: var(--ink);
+  background: var(--panel-2);
+  border: 2px solid var(--line);
+  box-shadow: 3px 3px 0 var(--line);
+  padding: 5px 9px;
+  cursor: pointer;
+  line-height: 1.5;
+  transition: none;
+}
+
+.btn:hover:not(:disabled) {
+  background: var(--panel-3);
+  transform: translate(-1px, -1px);
+  box-shadow: 4px 4px 0 var(--line);
+}
+
+.btn:active:not(:disabled) {
+  transform: translate(2px, 2px);
+  box-shadow: 0 0 0 var(--line);
+}
+
+.btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  filter: grayscale(0.6);
+}
+
+.btn.primary {
+  background: #4a3670;
+  color: #ffe9a8;
+  border-color: #120c22;
+}
+
+.btn.danger {
+  background: #6d2338;
+  color: #ffd9e2;
+}
+
+.btn.gold {
+  background: #6a5420;
+  color: #ffeaa8;
+}
+
+.btn.small {
+  font-size: 12px;
+  padding: 4px 8px;
+  box-shadow: 2px 2px 0 var(--line);
+}
+
+.btn.block {
+  width: 100%;
+}
+
+/* ---------- 进度条 ---------- */
+.bar {
+  position: relative;
+  height: 22px;
+  background: #100d1c;
+  border: 2px solid var(--line);
+  overflow: hidden;
+}
+
+.bar > i {
+  display: block;
+  height: 100%;
+  width: 0;
+  transition: width 0.12s steps(4, end);
+}
+
+.bar > span {
+  position: absolute;
+  inset: 0;
+  text-align: center;
+  font-size: 12px;
+  line-height: 18px;
+  color: #fff;
+  text-shadow: 1px 1px 0 #000;
+}
+
+.bar.hp > i {
+  background: repeating-linear-gradient(90deg, var(--hp) 0 6px, #d94555 6px 8px);
+}
+
+.bar.energy > i {
+  background: repeating-linear-gradient(90deg, var(--energy) 0 6px, #2f92c4 6px 8px);
+}
+
+.bar.xp > i {
+  background: repeating-linear-gradient(90deg, var(--xp) 0 6px, #7b52cc 6px 8px);
+}
+
+.bar.monster > i {
+  background: repeating-linear-gradient(90deg, #ff9d5c 0 6px, #d9702f 6px 8px);
+}
+
+/* ---------- 资源 ---------- */
+.res {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.res-item {
+  background: var(--panel-2);
+  border: 2px solid var(--line);
+  padding: 4px 8px;
+  font-size: 13px;
+  display: flex;
+  gap: 6px;
+  align-items: baseline;
+}
+
+.res-item b {
+  color: var(--gold);
+  font-weight: 400;
+}
+
+/* ---------- 升级条目 ---------- */
+.up {
+  background: var(--panel-2);
+  border: 2px solid var(--line);
+  padding: 7px 9px;
+  margin-bottom: 6px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.up.owned {
+  background: #23361f;
+  border-color: #3f6b34;
+}
+
+.up.locked {
+  opacity: 0.55;
+}
+
+.up-main {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.up-name {
+  color: var(--gold);
+}
+
+.up-desc {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.up-cost {
+  font-size: 13px;
+  color: var(--green);
+}
+
+/* ---------- 标签页 ---------- */
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.tab {
+  font-family: inherit;
+  font-size: 13px;
+  padding: 6px 10px;
+  background: var(--panel-2);
+  color: var(--muted);
+  border: 2px solid var(--line);
+  box-shadow: 2px 2px 0 var(--line);
+  cursor: pointer;
+}
+
+.tab.active {
+  background: #4a3670;
+  color: #ffe9a8;
+}
+
+/* ---------- 楼梯间（固定长宽，内部滚动） ---------- */
+.stairwell {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.stairwell-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.floor-label {
+  font-size: 20px;
+  color: var(--gold);
+  letter-spacing: 2px;
+}
+
+.monster-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+/* ---------- 布局：上半部分（角色 / 楼梯间 / 日志）+ 下半部分（标签页） ---------- */
+.panel.fill {
+  display: flex;
+  flex-direction: column;
+}
+
+/* 上半部分：固定高度 600px，三栏 30% / 40% / 30%（fr 会自动扣除间距） */
+.top-row {
+  display: grid;
+  grid-template-columns: minmax(0, 30fr) minmax(0, 40fr) minmax(0, 30fr);
+  gap: 12px;
+  align-items: stretch;
+  height: 600px;
+  margin-bottom: 12px;
+}
+
+.top-row > .panel {
+  margin-bottom: 0;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.bottom-row {
+  min-width: 0;
+}
+
+@media (max-width: 900px) {
+  .top-row {
+    grid-template-columns: minmax(0, 1fr);
+    height: auto;
+  }
+
+  .stairwell {
+    height: 560px;
+  }
+}
+
+/* ---------- 日志 ---------- */
+.log {
+  flex: 1 1 auto;
+  min-height: 180px;
+  max-height: 100%;
+  overflow-y: auto;
+  font-size: 13px;
+  color: var(--muted);
+  background: #100d1c;
+  border: 2px solid var(--line);
+  padding: 6px;
+}
+
+.log-entry {
+  border-bottom: 1px dotted #2c2547;
+  padding: 2px 0;
+}
+
+/* ---------- 其它 ---------- */
+.kbd {
+  display: inline-block;
+  background: #100d1c;
+  border: 2px solid var(--line);
+  padding: 0 6px;
+  font-size: 12px;
+  color: var(--gold);
+}
+
+.blink {
+  animation: blink 1s steps(2, start) infinite;
+}
+
+@keyframes blink {
+  to {
+    visibility: hidden;
+  }
+}
+
+textarea,
+input[type='text'],
+input[type='file'] {
+  font-family: inherit;
+  font-size: 13px;
+  width: 100%;
+  background: #100d1c;
+  color: var(--ink);
+  border: 2px solid var(--line);
+  padding: 6px;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #100d1c;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #3b3266;
+  border: 2px solid var(--line);
+}
