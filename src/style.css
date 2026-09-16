@@ -73,7 +73,7 @@ a {
 }
 
 .panel-title {
-  font-size: 14px;
+  font-size: 16px;
   color: var(--gold);
   margin-bottom: 8px;
   padding-bottom: 6px;
@@ -86,7 +86,7 @@ a {
 
 .sub {
   color: var(--muted);
-  font-size: 13px;
+  font-size: 14px;
 }
 
 .row {
@@ -111,7 +111,7 @@ a {
 /* ---------- 按钮 ---------- */
 .btn {
   font-family: inherit;
-  font-size: 13px;
+  font-size: 14px;
   color: var(--ink);
   background: var(--panel-2);
   border: 2px solid var(--line);
@@ -185,7 +185,7 @@ a {
   position: absolute;
   inset: 0;
   text-align: center;
-  font-size: 12px;
+  font-size: 16px;
   line-height: 18px;
   color: #fff;
   text-shadow: 1px 1px 0 #000;

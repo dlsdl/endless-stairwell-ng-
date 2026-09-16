@@ -325,34 +325,25 @@ export function monsterMaxHp(floor: number, _tier: number, boss: boolean): D {
 }
 
 /**
- * 怪物伤害（与参考游戏一致）：
- * 1~50 层 damage × 1.3^(难度-1)；51~100 层 damage × 1.2^(难度×3-1)；
+ * 怪物伤害 = MetaNum.hardy(怪物等级)/10
  * 100 层以上直接以自身血量造成伤害（参考游戏同款「一击必杀」设计）。
  */
-export function monsterDamage(floor: number, tier: number, boss: boolean): D {
-  const i = bandIndexOf(floor)
-  const band = HARDY_BANDS[Math.max(0, i)]
-  const base = band.damage[floor % band.damage.length]
-  const diff = difficultyOf(floor)
-  let dmg: D
-  if (floor <= 50) dmg = d(base).mul(d(1.3).pow(diff - 1))
-  else if (floor <= 100) dmg = d(base).mul(d(1.2).pow(diff * 3 - 1))
-  else dmg = monsterMaxHp(floor, tier, boss)
-  if (boss) dmg = dmg.mul(3)
-  return dmg
+export function monsterDamage(floor: number, _tier: number, boss: boolean): D {
+  if (floor > 100) return d(0)
+  return boss ? hardyOf(monsterLevel(floor)) :hardyOf(monsterLevel(floor)).div(10)
 }
 
 /**
  * 击杀经验：按血量的「量级」缩放，使每层所需击杀数大致恒定。
  * 攻击力 = 10 × 1.1^(等级-1)，打掉血量 H 需要等级 ≈ 24·log₁₀(H)；
- * 而等级 = √(总经验/20)，所以经验取 (log₁₀ 血量 + 1)² 量级最合适。
+ * 而等级 = √(总经验/20)，所以经验取 (log₁₀ 血量)² 量级最合适。
  */
 export function monsterXp(floor: number, tier: number, boss: boolean): D {
   const hp = monsterMaxHp(floor, tier, boss)
-  let xp = hp.log10().add(1).pow(2).mul(1500)
+  let xp = hp.log10().pow(4).mul(10)
   if (has('comb_tier6xp1') && tier >= 6) xp = xp.mul(2)
   if (has('blood_tier7xp1') && tier >= 7) xp = xp.mul(2)
-  if (boss) xp = xp.mul(20)
+  if (boss) xp = xp.mul(25)
   return xp
 }
 
@@ -362,18 +353,18 @@ export function monsterXp(floor: number, tier: number, boss: boolean): D {
 
 /** 升到 level 级所需的累计经验 */
 export function totalXpForLevel(level: D): D {
-  return level.sub(1).pow(2).mul(20)
+  return level.sub(1).pow(2).mul(10)
 }
 
 /** 由累计经验反解等级（闭式解，避免天文数字下的循环升级） */
 export function levelFromTotalXp(totalXp: D): D {
   if (totalXp.lte(0)) return d(1)
-  return totalXp.div(20).sqrt().add(1).floor().max(1)
+  return totalXp.div(10).sqrt().add(1).floor().max(1)
 }
 
 /** 当前等级升到下一级还需要的经验 */
 export function xpToNext(level: D): D {
-  return d(20).mul(level.mul(2).sub(1))
+  return d(10).mul(level.mul(2).sub(1))
 }
 
 /** 楼层难度（黄金升级用） */

@@ -51,7 +51,6 @@ const regen = computed(() => M.energyRegen())
     <div class="grid" style="margin-top: 10px; gap: 4px">
       <div class="between"><span class="sub">攻击伤害</span><b>{{ damage.format() }}</b></div>
       <div class="between"><span class="sub">累计经验</span><b>{{ state.totalXp.format() }}</b></div>
-      <div class="between"><span class="sub">击杀 / 死亡</span><b>{{ state.kills.formatWhole() }} / {{ state.deaths.formatWhole() }}</b></div>
       <div class="between"><span class="sub">经验倍率</span><b>×{{ M.xpMult().format(2) }}</b></div>
       <div class="between"><span class="sub">全局倍率</span><b>×{{ M.globalMult().format(2) }}</b></div>
     </div>
@@ -73,7 +72,8 @@ const regen = computed(() => M.energyRegen())
     </div>
     <div class="sub" style="margin-top: 6px">
       蜂蜜：立刻获得当前升级所需经验的 20%，并永久小幅提升经验获取。<br />
-      生命只在没有敌人时回复；进入战斗后不再自然回血。
+      香草蜂蜜：立刻恢复满能量和生命值。<br />
+      生命只在没有敌人时自动回复。
     </div>
   </div>
 </template>

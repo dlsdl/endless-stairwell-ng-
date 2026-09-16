@@ -30,7 +30,7 @@ const canFlee = computed(() => D.from(state.energy).gte(FLEE_COST))
 
 /** 怪物等级（hardy 的 n）可能非常大，做成易读的显示 */
 function formatLevel(n: number): string {
-  if (n < 1e6) return n.toLocaleString('en-US')
+  if (n < 9e15) return n.toLocaleString('en-US')
   return n.toExponential(3).replace('e+', 'e')
 }
 </script>
@@ -88,10 +88,6 @@ function formatLevel(n: number): string {
         <div class="between sub">
           <span>下次攻击：{{ Math.max(0, monster.timer).toFixed(1) }} 秒</span>
           <span>伤害：{{ monster.dmg.format() }}</span>
-        </div>
-        <div class="sub">
-          血量 = MetaNum.hardy(Lv.{{ formatLevel(monster.level) }}){{ monster.boss ? ' × 10' : '' }} ·
-          战斗中生命不回复
         </div>
         <div class="row" style="margin-top: 8px">
           <button class="btn primary" :disabled="!canAttack" @click="attack()">
