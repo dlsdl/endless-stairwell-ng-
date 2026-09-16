@@ -72,7 +72,8 @@ const regen = computed(() => M.energyRegen())
       </button>
     </div>
     <div class="sub" style="margin-top: 6px">
-      蜂蜜：立刻获得当前升级所需经验的 20%，并永久小幅提升经验获取。
+      蜂蜜：立刻获得当前升级所需经验的 20%，并永久小幅提升经验获取。<br />
+      生命只在没有敌人时回复；进入战斗后不再自然回血。
     </div>
   </div>
 </template>

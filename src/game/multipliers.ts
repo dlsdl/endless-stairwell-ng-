@@ -1,29 +1,21 @@
-import MN from 'metanum'
 import { D, d, hardy } from './num'
 import { has, state } from './state'
 
 /* ------------------------------------------------------------------ *
  * 基础常量
  * ------------------------------------------------------------------ */
-export const BASE_ENERGY_REGEN = 5 // 每秒回复的能量（满值 100）
-export const BASE_ATTACK_COOLDOWN = 0.7
-export const ATTACK_COST = 4
+export const BASE_ENERGY_REGEN = 10 // 每秒回复的能量（满值 100）
+export const BASE_ATTACK_COOLDOWN = 0.1
+export const ATTACK_COST = 10
 export const ENTER_ROOM_COST = 5
 export const FLEE_COST = 20
-export const BASE_HP_REGEN = 0.004 // 每秒回复最大生命的比例
+export const BASE_HP_REGEN = 0.1 // 每秒回复最大生命的比例
 
 /** 可可棒里程碑：达到数量时给予额外 ×2 全局倍率 */
 export const BAR_MILESTONES = [1, 2, 4, 5, 9, 10, 11, 13, 15, 16, 19, 20, 26, 30]
 
 export function tierOf(floor: number): number {
-  if (floor < 50) return 1
-  if (floor < 100) return 2
-  if (floor < 149) return 3
-  if (floor < 248) return 4
-  if (floor < 299) return 5
-  if (floor < 351) return 6
-  if (floor < 500) return 7
-  return 8
+  return Math.ceil(floor/50)
 }
 
 /* ------------------------------------------------------------------ *
@@ -98,18 +90,18 @@ export function dmgMult(): D {
   return m
 }
 
-/** 玩家基础攻击力（未计倍率）：与参考游戏一致，10 × 1.1^(等级-1) */
+/** 玩家基础攻击力：1 × 1.1^(等级-1) */
 export function baseDamage(): D {
-  return d(10).mul(d(1.1).pow(D.from(state.level).sub(1)))
+  return d(1).mul(d(1.1).pow(D.from(state.level).sub(1)))
 }
 
 export function playerDamage(): D {
   return baseDamage().mul(dmgMult())
 }
 
-/** 玩家生命上限：与参考游戏一致，100 × 1.1^(等级-1)，再乘本作的额外倍率 */
+/** 玩家生命上限，10 × 1.1^(等级-1)，再乘本作的额外倍率 */
 export function playerMaxHp(): D {
-  const base = d(100).mul(d(1.1).pow(D.from(state.level).sub(1)))
+  const base = d(10).mul(d(1.1).pow(D.from(state.level).sub(1)))
   let m = globalMult().pow(0.6)
   if (has('altar_shadowring')) m = m.mul(2)
   return base.mul(m)
@@ -254,130 +246,82 @@ export function bloodPerSecond(): D {
  * 参考：script.js 中 monsterEncounter() 的 if/else 链 + constants.js 的 monsters 表
  * ------------------------------------------------------------------ */
 
-type BandKind = 'low' | 'mid' | 'pow2' | 'tetr' | 'pent' | 'arrow'
-
-interface MonsterBand {
+interface HardyBand {
   /** 该区间的最大楼层 */
   max: number
-  /** 4 种怪物的基础血量（取自参考游戏 constants.js 的 monsters 表） */
-  health: number[]
-  /** 4 种怪物的基础伤害（同上） */
+  /** hardy 参数 n 的区间起点 / 终点 */
+  nStart: number
+  nEnd: number
+  /** 4 种怪物的基础伤害 */
   damage: number[]
-  kind: BandKind
-  /** arrow 区间使用的箭号数量 */
-  arrows?: number
 }
 
-/** 楼层区间表（边界 50/100/150/200/250/300/350/500 与参考游戏一致） */
-export const MONSTER_BANDS: MonsterBand[] = [
-  { max: 50, health: [75, 100, 120, 150], damage: [10, 8, 12, 12], kind: 'low' },
-  { max: 100, health: [600, 1000, 1500, 1800], damage: [45, 80, 140, 220], kind: 'mid' },
-  { max: 150, health: [80, 100, 120, 130], damage: [80, 100, 120, 130], kind: 'pow2' },
-  { max: 200, health: [10, 12, 16, 18], damage: [10, 12, 16, 18], kind: 'tetr' },
-  { max: 250, health: [10, 11, 12, 13], damage: [10, 11, 12, 13], kind: 'pent' },
-  { max: 300, health: [10, 11, 12, 13], damage: [10, 11, 12, 13], kind: 'arrow', arrows: 6 },
-  { max: 350, health: [10, 11, 12, 13], damage: [10, 11, 12, 13], kind: 'arrow', arrows: 8 },
-  { max: 500, health: [10, 11, 12, 13], damage: [10, 11, 12, 13], kind: 'arrow', arrows: 10 },
-  { max: Infinity, health: [10, 11, 12, 13], damage: [10, 11, 12, 13], kind: 'arrow', arrows: 12 },
+/** [楼层区间 → hardy(n) 的 n 区间] 对照表 */
+export const HARDY_BANDS: HardyBand[] = [
+  { max: 50, nStart: 1, nEnd: 60, damage: [10, 8, 12, 12] },
+  { max: 100, nStart: 61, nEnd: 120, damage: [45, 80, 140, 220] },
+  { max: 150, nStart: 121, nEnd: 320, damage: [80, 100, 120, 130] },
+  { max: 200, nStart: 321, nEnd: 1000, damage: [10, 12, 16, 18] },
+  { max: 250, nStart: 1001, nEnd: 10000, damage: [10, 11, 12, 13] },
+  { max: 300, nStart: 10001, nEnd: 1e6, damage: [10, 11, 12, 13] },
+  { max: 350, nStart: 1e6, nEnd: 1e8, damage: [10, 11, 12, 13] },
+  { max: 400, nStart: 1e8, nEnd: 1e10, damage: [10, 11, 12, 13] },
+  { max: 450, nStart: 1e10, nEnd: 1e11, damage: [10, 11, 12, 13] },
+  { max: 500, nStart: 1e11, nEnd: 1e12, damage: [10, 11, 12, 13] },
 ]
 
+/** 500 层以上按同样趋势外推，n 上限 1e15 */
+const HARDY_N_CAP = 1e15
+
+/** 返回楼层所属区间下标，-1 表示超过 500 层 */
 function bandIndexOf(floor: number): number {
-  for (let i = 0; i < MONSTER_BANDS.length; i++) {
-    if (floor <= MONSTER_BANDS[i].max) return i
+  for (let i = 0; i < HARDY_BANDS.length; i++) {
+    if (floor <= HARDY_BANDS[i].max) return i
   }
-  return MONSTER_BANDS.length - 1
+  return -1
 }
 
-/**
- * 区间内难度：参考游戏中每个区间有 4 个「特殊楼层」，难度依次为 1~4。
- * 这里按楼层在区间内的相对位置线性插值出同样的 1~4。
- */
+/** 区间内难度 1~4（用于怪物伤害） */
 export function difficultyOf(floor: number): number {
   const i = bandIndexOf(floor)
-  const end = MONSTER_BANDS[i].max
-  const start = i === 0 ? 1 : MONSTER_BANDS[i - 1].max + 1
-  if (!Number.isFinite(end)) return 4
-  const t = (floor - start) / Math.max(1, end - start)
+  if (i < 0) return 4
+  const start = i === 0 ? 1 : HARDY_BANDS[i - 1].max + 1
+  const t = (floor - start) / Math.max(1, HARDY_BANDS[i].max - start)
   return 1 + 3 * Math.max(0, Math.min(1, t))
 }
 
-/** 与参考游戏一致的目标血量（反解怪物等级前的设计值） */
-function monsterHpTarget(floor: number, boss: boolean): D {
-  const i = bandIndexOf(floor)
-  const band = MONSTER_BANDS[i]
-  const base = band.health[floor % band.health.length]
-  const diff = difficultyOf(floor)
-  let hp: D
+const hardyCache = new Map<number, D>()
 
-  switch (band.kind) {
-    // 1~50 层：health × 1.5^(难度-1)
-    case 'low':
-      hp = d(base).mul(d(1.5).pow(diff - 1))
-      break
-    // 51~100 层：health × 1.5^(难度×3-1)
-    case 'mid':
-      hp = d(base).mul(d(1.5).pow(diff * 3 - 1))
-      break
-    // 101~150 层：10^10^(health^难度)
-    case 'pow2':
-      hp = d(10).pow(d(10).pow(d(base).pow(diff - 0.075)))
-      break
-    // 151~200 层：10↑↑(health × 难度 - 6)
-    case 'tetr': {
-      const height = base * diff * 0.9 - 6
-      hp = height < 2 ? d(10).pow(Math.max(1, height)) : d(10).tetr(Math.round(height))
-      break
-    }
-    // 201~250 层：10↑↑↑(20^(health^(难度-1.3)))
-    case 'pent':
-      hp = d(10).pent(d(20).pow(d(base).pow(diff - 1.3)))
-      break
-    // 251 层以上：health × 难度 的 n 箭号运算
-    default:
-      hp = new D(MN.arrow(Math.max(2, base * (diff - 0.7)), band.arrows ?? 6, 10))
-      break
-  }
-  if (boss) hp = hp.mul(10)
-  return hp
-}
-
-const monsterLevelCache = new Map<number, number>()
-
-/** 二分反解出「hardy(L) 最接近目标血量」的整数等级 L */
-function solveMonsterLevel(target: D): number {
-  const targetLog = target.log10()
-  let hi = 1
-  while (hi < 1e9 && hardy(hi).lt(target)) hi *= 2
-  let lo = Math.max(1, Math.floor(hi / 2))
-  while (lo < hi) {
-    const mid = Math.floor((lo + hi) / 2)
-    if (hardy(mid).lt(target)) lo = mid + 1
-    else hi = mid
-  }
-  if (lo > 1) {
-    const cur = hardy(lo).log10().sub(targetLog).abs()
-    const prev = hardy(lo - 1).log10().sub(targetLog).abs()
-    if (prev.lt(cur)) return lo - 1
-  }
-  return Math.max(1, lo)
-}
-
-/** 怪物等级：由楼层难度反解得到，血量恒等于 hardy(等级) */
-export function monsterLevel(floor: number, boss: boolean): number {
-  const key = floor * 2 + (boss ? 1 : 0)
-  const cached = monsterLevelCache.get(key)
+function hardyOf(n: number): D {
+  const cached = hardyCache.get(n)
   if (cached !== undefined) return cached
-  let lv = solveMonsterLevel(monsterHpTarget(floor, boss))
-  // hardy 在部分区间并非严格单调，这里保证等级随楼层单调不减
-  const prev = monsterLevelCache.get(key - 2)
-  if (prev !== undefined && lv < prev) lv = prev
-  monsterLevelCache.set(key, lv)
-  return lv
+  const value = hardy(n)
+  hardyCache.set(n, value)
+  return value
 }
 
-/** 怪物血量 = MetaNum.hardy(怪物等级)，数值对齐参考游戏 */
+/**
+ * 怪物等级 = hardy 的参数 n：按楼层在对应区间内线性插值。
+ * 注意 hardy 对小数会按「数位 → 序数」展开（例如 hardy(50.5) 远大于 hardy(50)），
+ * 所以 n 必须取整。
+ */
+export function monsterLevel(floor: number): number {
+  const f = Math.max(1, Math.floor(floor))
+  const i = bandIndexOf(f)
+  if (i < 0) {
+    // 500 层以上继续外推：每 50 层 n 放大 10 倍
+    return Math.max(1, Math.round(Math.min(1e12 * Math.pow(10, (f - 500) / 50), HARDY_N_CAP)))
+  }
+  const band = HARDY_BANDS[i]
+  const start = i === 0 ? 1 : HARDY_BANDS[i - 1].max + 1
+  const t = (f - start) / Math.max(1, band.max - start)
+  return Math.max(1, Math.round(band.nStart + (band.nEnd - band.nStart) * t))
+}
+
+/** 怪物血量 = MetaNum.hardy(怪物等级)（BOSS 额外 ×10） */
 export function monsterMaxHp(floor: number, _tier: number, boss: boolean): D {
-  return hardy(monsterLevel(floor, boss))
+  const hp = hardyOf(monsterLevel(floor))
+  return boss ? hp.mul(10) : hp
 }
 
 /**
@@ -386,7 +330,8 @@ export function monsterMaxHp(floor: number, _tier: number, boss: boolean): D {
  * 100 层以上直接以自身血量造成伤害（参考游戏同款「一击必杀」设计）。
  */
 export function monsterDamage(floor: number, tier: number, boss: boolean): D {
-  const band = MONSTER_BANDS[bandIndexOf(floor)]
+  const i = bandIndexOf(floor)
+  const band = HARDY_BANDS[Math.max(0, i)]
   const base = band.damage[floor % band.damage.length]
   const diff = difficultyOf(floor)
   let dmg: D
@@ -398,31 +343,17 @@ export function monsterDamage(floor: number, tier: number, boss: boolean): D {
 }
 
 /**
- * 击杀经验（与参考游戏同构）：
- * ≤100 层 (血量/10)^1.3；101~150 层 log₁₀(血量)^0.4；更深层为血量的迭代幂
+ * 击杀经验：按血量的「量级」缩放，使每层所需击杀数大致恒定。
+ * 攻击力 = 10 × 1.1^(等级-1)，打掉血量 H 需要等级 ≈ 24·log₁₀(H)；
+ * 而等级 = √(总经验/20)，所以经验取 (log₁₀ 血量 + 1)² 量级最合适。
  */
-export function monsterXp(floor: number, _tier: number, boss: boolean): D {
-  const hp = monsterMaxHp(floor, _tier, boss)
-  let xp: D
-  if (floor <= 100) {
-    xp = hp.div(10).pow(1.3)
-  } else if (floor <= 150) {
-    xp = hp.log10().pow(0.4)
-  } else {
-    const diff = difficultyOf(floor)
-    xp = hp.tetr(difficultyTetrCount(diff))
-  }
-  if (has('comb_tier6xp1') && _tier >= 6) xp = xp.mul(2)
-  if (has('blood_tier7xp1') && _tier >= 7) xp = xp.mul(2)
+export function monsterXp(floor: number, tier: number, boss: boolean): D {
+  const hp = monsterMaxHp(floor, tier, boss)
+  let xp = hp.log10().add(1).pow(2).mul(1500)
+  if (has('comb_tier6xp1') && tier >= 6) xp = xp.mul(2)
+  if (has('blood_tier7xp1') && tier >= 7) xp = xp.mul(2)
   if (boss) xp = xp.mul(20)
   return xp
-}
-
-/** 参考游戏中 ≥151 层的经验会按难度被迭代幂放大（6 / 25 / 100 / 500 档） */
-function difficultyTetrCount(diff: number): D {
-  const bars = D.from(state.res.cocoaBar)
-  const count = bars.gte(15) ? 500 : bars.gte(13) ? 100 : bars.gte(11) ? 25 : 6
-  return d(count).mul(diff / 2 + 0.5)
 }
 
 /* ------------------------------------------------------------------ *

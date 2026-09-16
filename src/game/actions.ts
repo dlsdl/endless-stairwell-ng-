@@ -83,7 +83,7 @@ export function makeMonster(floor: number, boss = false): MonsterState {
   const interval = 3
   return {
     name,
-    level: M.monsterLevel(floor, boss),
+    level: M.monsterLevel(floor),
     tier,
     floor,
     hp: maxHp,
@@ -376,7 +376,8 @@ export function tick(dt: number): void {
   if (D.from(state.energy).gt(maxE)) state.energy = maxE
 
   const maxHp = M.playerMaxHp()
-  if (D.from(state.hp).lt(maxHp)) {
+  // 生命只在没有敌人的时候回复；进入战斗后不再自然回血
+  if (!state.monster && D.from(state.hp).lt(maxHp)) {
     state.hp = D.min(maxHp, D.from(state.hp).add(M.hpRegen().mul(dt)))
   }
   if (D.from(state.hp).gt(maxHp)) state.hp = maxHp

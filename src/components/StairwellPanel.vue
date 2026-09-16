@@ -27,6 +27,12 @@ const unlockedTeleports = computed(() => TELEPORTS.filter((t) => t.requires()))
 const canEnter = computed(() => D.from(state.energy).gte(ENTER_ROOM_COST))
 const canAttack = computed(() => D.from(state.energy).gte(ATTACK_COST) && state.attackCooldown <= 0)
 const canFlee = computed(() => D.from(state.energy).gte(FLEE_COST))
+
+/** 怪物等级（hardy 的 n）可能非常大，做成易读的显示 */
+function formatLevel(n: number): string {
+  if (n < 1e6) return n.toLocaleString('en-US')
+  return n.toExponential(3).replace('e+', 'e')
+}
 </script>
 
 <template>
@@ -72,7 +78,7 @@ const canFlee = computed(() => D.from(state.energy).gte(FLEE_COST))
 
       <template v-if="monster">
         <div class="monster-head">
-          <b style="color: var(--pink)">Lv.{{ monster.level }} · {{ monster.name }}</b>
+          <b style="color: var(--pink)">Lv.{{ formatLevel(monster.level) }} · {{ monster.name }}</b>
           <span class="sub">{{ monster.tier }} 阶{{ monster.boss ? ' · BOSS' : '' }}</span>
         </div>
         <div class="bar monster" style="margin: 4px 0">
@@ -83,7 +89,10 @@ const canFlee = computed(() => D.from(state.energy).gte(FLEE_COST))
           <span>下次攻击：{{ Math.max(0, monster.timer).toFixed(1) }} 秒</span>
           <span>伤害：{{ monster.dmg.format() }}</span>
         </div>
-        <div class="sub">血量 = MetaNum.hardy(Lv.{{ monster.level }})</div>
+        <div class="sub">
+          血量 = MetaNum.hardy(Lv.{{ formatLevel(monster.level) }}){{ monster.boss ? ' × 10' : '' }} ·
+          战斗中生命不回复
+        </div>
         <div class="row" style="margin-top: 8px">
           <button class="btn primary" :disabled="!canAttack" @click="attack()">
             攻击 <span class="kbd">A</span>
