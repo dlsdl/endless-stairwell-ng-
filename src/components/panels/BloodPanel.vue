@@ -18,7 +18,7 @@ const perSecond = () => M.bloodPerSecond()
       <div class="sub" style="margin-bottom: 8px">
         100 层以上的敌人会掉落魔血；魔血按对数放大全局倍率（当前 ×{{
           state.res.blood.add(1).pow(0.1).format(2)
-        }}）。
+        }}）。产量会依次经过 平方 → 再平方 → ↑↑2（迭代幂）→ ↑↑↑2（五级运算）的超运算放大。
       </div>
       <div v-for="(count, i) in state.producers" :key="i" class="up">
         <div class="up-main">

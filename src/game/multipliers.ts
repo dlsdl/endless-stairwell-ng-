@@ -1,4 +1,4 @@
-import { D, d, hardy } from './num'
+import { D, d, expansion, hardy } from './num'
 import { has, state } from './state'
 
 /* ------------------------------------------------------------------ *
@@ -56,10 +56,13 @@ export function globalMult(): D {
   return m
 }
 
-/** 可可蜂蜜提供的 XP 倍率 */
+/**
+ * 可可蜂蜜提供的 XP 倍率（参考游戏 cocoaBoost）：
+ * cocoaBoost = 4 ^ (可可蜂蜜 ^ 0.8)
+ */
 export function cocoaXpMult(): D {
   const cocoa = D.from(state.res.cocoa)
-  return cocoa.add(1).pow(0.4)
+  return d(4).pow(cocoa.pow(0.8))
 }
 
 /** 蜂蜜消耗后留下的临时 XP 加成 */
@@ -82,16 +85,23 @@ export function xpMult(): D {
   return m
 }
 
+// 伤害倍率
 export function dmgMult(): D {
   let m = globalMult()
-  m = m.mul(d(1).add(state.permRunes.red * 0.05))
-  if (state.buffTime.red > 0) m = m.mul(1.75)
+  m = m.mul(d(1).add(state.permRunes.red * 0.1))
+  if (state.buffTime.red > 0) m = m.mul(1.5)
   if (has('blood_gun')) m = m.mul(2)
   return m
 }
 
-/** 玩家基础攻击力：1 × 1.1^(等级-1) */
+/**
+ * 玩家基础攻击力：1 × 1.1^(等级-1)。
+ * 一旦拥有黄金蜂蜜，攻击力改为参考游戏的超运算公式：
+ * attackDamage = expansion(11, 黄金蜂蜜 + 5)
+ */
 export function baseDamage(): D {
+  const golden = D.from(state.res.golden)
+  if (golden.gt(0)) return expansion(11, golden.add(5))
   return d(1).mul(d(1.1).pow(D.from(state.level).sub(1)))
 }
 
@@ -123,10 +133,11 @@ export function maxEnergy(): D {
   return e
 }
 
+// 能量回复率倍率
 export function energyRegen(): D {
   let r = d(BASE_ENERGY_REGEN)
   r = r.mul(d(1).add(state.permRunes.blue * 0.1))
-  if (state.buffTime.blue > 0) r = r.mul(1.75)
+  if (state.buffTime.blue > 0) r = r.mul(1.5)
   if (has('comb_hypergem')) r = r.mul(2)
   return r
 }
@@ -140,9 +151,9 @@ export function attackCooldown(): number {
 
 /** 物品发现率倍率 */
 export function itemFind(): D {
-  let m = d(1).add(state.permRunes.green * 0.05)
-  if (state.buffTime.green > 0) m = m.mul(1.4)
-  if (has('altar_shadowring')) m = m.mul(1.25)
+  let m = d(1).add(state.permRunes.green * 0.1)
+  if (state.buffTime.green > 0) m = m.mul(1.5)
+  if (has('altar_shadowring')) m = m.mul(2)
   return m
 }
 
@@ -163,6 +174,33 @@ export function cocoaGainMult(): D {
   if (has('altar_vanilla') && vanilla.gt(0)) {
     m = m.mul(d(1).add(vanilla.add(1).log10()).mul(2))
   }
+  return applyCocoaHyperBonus(m)
+}
+
+/**
+ * 参考游戏里可可蜂蜜获取会被可可棒 / 暗球用超运算放大：
+ *  - 按可可棒数量取幂（暗球 ≥2 时指数 ×50）
+ *  - 可可棒 ≥9：额外 ×10↑↑10
+ *  - 按暗球数量 ×10 / ×100 / ×1e4 / ×1e10
+ *  - 可可棒 ≥19：整体 ↑↑↑2（五级运算，x↑↑↑2 = x↑↑x）
+ */
+function applyCocoaHyperBonus(m: D): D {
+  const bars = D.from(state.res.cocoaBar)
+  const orbs = D.from(state.res.darkOrb)
+  if (bars.gt(0)) {
+    let exponent = orbs.gte(2)
+      ? bars.mul(bars.gte(4) ? 500 : 100).add(1)
+      : bars.mul(bars.gte(4) ? 10 : 2).add(1)
+    // 指数封顶，避免直接溢出到无穷
+    if (exponent.gt(1e6)) exponent = d(1e6)
+    m = m.pow(exponent)
+  }
+  if (bars.gte(9)) m = m.mul(d(10).tetr(2)) // 10↑↑10
+  if (orbs.gte(4)) m = m.mul(1e10)
+  else if (orbs.gte(3)) m = m.mul(1e4)
+  else if (orbs.gte(2)) m = m.mul(100)
+  else if (orbs.gte(1)) m = m.mul(10)
+  if (bars.gte(19)) m = m.pent(2)
   return m
 }
 
@@ -231,9 +269,11 @@ export function bloodPerSecond(): D {
     if (owned.gt(0)) total = total.add(owned.mul(producerRate(i)))
   }
   let prod = total.mul(bloodGainMult())
+  // 参考游戏：产量会被平方 → 再平方 → ↑↑2（迭代幂）→ ↑↑↑2（五级运算）
   if (has('blood_square')) prod = prod.pow(2)
   if (has('blood_square2')) prod = prod.pow(2)
-  if (has('blood_tetrate')) prod = prod.pow(prod.log10().add(1))
+  if (has('blood_tetrate')) prod = prod.tetr(2)
+  if (has('blood_pentate')) prod = prod.pent(2)
   return prod
 }
 
@@ -325,12 +365,12 @@ export function monsterMaxHp(floor: number, _tier: number, boss: boolean): D {
 }
 
 /**
- * 怪物伤害 = MetaNum.hardy(怪物等级)/10
- * 100 层以上直接以自身血量造成伤害（参考游戏同款「一击必杀」设计）。
+ * 怪物伤害 = hardy(怪物等级) / 10（BOSS 为完整血量）。
+ * 与血量同源，因此深层怪物同样具备威胁（修复了 101 层以后伤害为 0 的问题）。
  */
 export function monsterDamage(floor: number, _tier: number, boss: boolean): D {
-  if (floor > 100) return d(0)
-  return boss ? hardyOf(monsterLevel(floor)) :hardyOf(monsterLevel(floor)).div(10)
+  const hp = hardyOf(monsterLevel(floor))
+  return boss ? hp : hp.div(10)
 }
 
 /**

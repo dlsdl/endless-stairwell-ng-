@@ -235,6 +235,19 @@ export function d(value: DValue = 0): D {
   return D.from(value)
 }
 
+/** base ↑^arrows operand（超运算，arrows 为箭号数量） */
+export function arrow(base: DValue, arrows: DValue, operand: DValue): D {
+  return new D(MN.arrow(D.from(base).v, D.from(arrows).v, D.from(operand).v))
+}
+
+/**
+ * 与参考游戏 ExpantaNum.expansion(base, level) 等价：base ↑^level base。
+ * 参考游戏用它把「黄金蜂蜜」直接换算成攻击力等级。
+ */
+export function expansion(base: DValue, level: DValue): D {
+  return arrow(base, level, base)
+}
+
 /**
  * Hardy 层级 H_α(10)：α 由 level 的十进制数位按 Cantor 范式展开得到。
  * 本作用它来生成怪物血量 —— 怪物等级每提高一点，血量都会跃升一个层级。

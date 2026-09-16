@@ -88,7 +88,7 @@ export const ALTAR_UPGRADES: UpgradeDef[] = [
   {
     id: 'altar_teleport',
     name: '捷径',
-    desc: '解锁 149 层及更高的传送按钮',
+    desc: '解锁 150 层传送按钮',
     currency: 'cocoa',
     cost: d(100),
   },
@@ -127,9 +127,9 @@ export const PLASM_UPGRADES: UpgradeDef[] = [
     cost: d(2),
   },
   {
-    id: 'plasm_tp149',
-    name: '149 层传送',
-    desc: '解锁直达 149 层的按钮',
+    id: 'plasm_tp200',
+    name: '200 层传送',
+    desc: '解锁直达 200 层的按钮',
     currency: 'plasm',
     cost: d(3),
   },
@@ -204,9 +204,9 @@ export const COMBINATOR_UPGRADES: UpgradeDef[] = [
     requires: () => has('comb_hyper'),
   },
   {
-    id: 'comb_tp248',
-    name: '248 层传送',
-    desc: '解锁直达 248 层的按钮',
+    id: 'comb_tp250',
+    name: '250 层传送',
+    desc: '解锁直达 250 层的按钮',
     currency: 'hyper',
     cost: d(3),
     requires: () => has('comb_hyper'),
@@ -260,9 +260,9 @@ export const COMBINATOR_UPGRADES: UpgradeDef[] = [
     requires: () => has('comb_tier5'),
   },
   {
-    id: 'comb_tp299',
-    name: '299 层传送',
-    desc: '解锁直达 299 层的按钮',
+    id: 'comb_tp300',
+    name: '300 层传送',
+    desc: '解锁直达 300 层的按钮',
     currency: 'hyper',
     cost: d(1e6),
     requires: () => has('comb_tp248'),
@@ -361,10 +361,18 @@ export const BLOOD_UPGRADES: UpgradeDef[] = [
   {
     id: 'blood_tetrate',
     name: '迭代产能',
-    desc: '魔血产量被自身对数迭代放大',
+    desc: '魔血产量被迭代幂放大：产量 ↑↑ 2',
     currency: 'cocoa',
     cost: d(1e150),
     requires: () => has('blood_square2'),
+  },
+  {
+    id: 'blood_pentate',
+    name: '五阶产能',
+    desc: '魔血产量被五级运算放大：产量 ↑↑↑ 2（等价于产量 ↑↑ 产量）',
+    currency: 'cocoa',
+    cost: d(1e200),
+    requires: () => has('blood_tetrate'),
   },
   {
     id: 'blood_tier7xp1',
@@ -410,9 +418,9 @@ export const BLOOD_UPGRADES: UpgradeDef[] = [
  * ------------------------------------------------------------------ */
 export const GOLDEN_UPGRADES: UpgradeDef[] = [
   {
-    id: 'golden_tp351',
-    name: '351 层传送',
-    desc: '解锁直达 351 层的按钮',
+    id: 'golden_tp350',
+    name: '350 层传送',
+    desc: '解锁直达 350 层的按钮',
     currency: 'cocoa',
     cost: d(1e20),
   },
@@ -486,7 +494,7 @@ export const PRESTIGES: PrestigeDef[] = [
     currency: 'cocoa',
     can: (s) => s.level.gte(500),
     reqText: (s) => `需要等级 500（当前 ${s.level.formatWhole()}）`,
-    gain: (s) => s.level.pow(2).div(1000).mul(1),
+    gain: (s) => s.level.pow(3).div(1e7),
   },
   {
     id: 'plasm',

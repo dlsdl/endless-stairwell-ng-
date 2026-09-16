@@ -62,12 +62,13 @@ export interface TeleportDef {
 }
 
 export const TELEPORTS: TeleportDef[] = [
-  { floor: 49, requires: () => true },
-  { floor: 99, requires: () => true },
-  { floor: 149, requires: () => has('altar_teleport') && has('plasm_tp149') },
-  { floor: 248, requires: () => has('altar_teleport') && has('comb_tp248') },
-  { floor: 299, requires: () => has('altar_teleport') && has('comb_tp299') },
-  { floor: 351, requires: () => has('altar_teleport') && has('golden_tp351') },
+  { floor: 50, requires: () => true },
+  { floor: 100, requires: () => true },
+  { floor: 150, requires: () => has('altar_teleport') && has('altar_teleport') },
+  { floor: 200, requires: () => has('altar_teleport') && has('plasm_tp150') },
+  { floor: 250, requires: () => has('altar_teleport') && has('comb_tp250') },
+  { floor: 300, requires: () => has('altar_teleport') && has('comb_tp300') },
+  { floor: 350, requires: () => has('altar_teleport') && has('golden_tp350') },
 ]
 
 export function makeMonster(floor: number, boss = false): MonsterState {
@@ -431,7 +432,7 @@ const TEMP_RUNE_COST: Record<RuneColor, { honey: number; vanilla: number }> = {
   blue: { honey: 3, vanilla: 1 },
 }
 
-export const PERM_RUNE_MAX: Record<RuneColor, number> = { red: 10, green: 5, blue: 5 }
+export const PERM_RUNE_MAX: Record<RuneColor, number> = { red: 10, green: 10, blue: 10 }
 
 export const RUNE_NAMES: Record<RuneColor, string> = {
   red: '红色符文',

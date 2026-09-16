@@ -13,14 +13,14 @@ import type { RuneColor } from '@/game/types'
 const colors: RuneColor[] = ['red', 'green', 'blue']
 
 const TEMP_EFFECT: Record<RuneColor, string> = {
-  red: '+75% 攻击伤害与经验获取',
-  green: '+40% 物品发现率',
-  blue: '+75% 能量回复速度',
+  red: '+50% 攻击伤害与经验获取',
+  green: '+50% 物品发现率',
+  blue: '+50% 能量回复速度',
 }
 
 const PERM_EFFECT: Record<RuneColor, (lv: number) => string> = {
-  red: (lv) => `+${lv * 5}% 经验获取`,
-  green: (lv) => `+${lv * 5}% 物品发现率`,
+  red: (lv) => `+${lv * 10}% 经验获取`,
+  green: (lv) => `+${lv * 10}% 物品发现率`,
   blue: (lv) => `+${lv * 10}% 能量回复速度`,
 }
 
