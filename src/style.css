@@ -38,7 +38,7 @@ body {
   color: var(--ink);
   font-family: 'Press Start 2P', 'DotGothic16', 'Zpix', 'Fusion Pixel', 'Courier New', ui-monospace,
     monospace;
-  font-size: 14px;
+  font-size: 16px;
   line-height: 1.8;
   image-rendering: pixelated;
   -webkit-font-smoothing: none;
@@ -111,7 +111,7 @@ a {
 /* ---------- 按钮 ---------- */
 .btn {
   font-family: inherit;
-  font-size: 14px;
+  font-size: 16px;
   color: var(--ink);
   background: var(--panel-2);
   border: 2px solid var(--line);
@@ -218,7 +218,7 @@ a {
   background: var(--panel-2);
   border: 2px solid var(--line);
   padding: 4px 8px;
-  font-size: 13px;
+  font-size: 16px;
   display: flex;
   gap: 6px;
   align-items: baseline;
@@ -261,11 +261,11 @@ a {
 
 .up-desc {
   color: var(--muted);
-  font-size: 13px;
+  font-size: 14px;
 }
 
 .up-cost {
-  font-size: 13px;
+  font-size: 14px;
   color: var(--green);
 }
 
@@ -279,7 +279,7 @@ a {
 
 .tab {
   font-family: inherit;
-  font-size: 13px;
+  font-size: 16px;
   padding: 6px 10px;
   background: var(--panel-2);
   color: var(--muted);
@@ -365,7 +365,7 @@ a {
   min-height: 180px;
   max-height: 100%;
   overflow-y: auto;
-  font-size: 13px;
+  font-size: 12px;
   color: var(--muted);
   background: #100d1c;
   border: 2px solid var(--line);
@@ -401,7 +401,7 @@ textarea,
 input[type='text'],
 input[type='file'] {
   font-family: inherit;
-  font-size: 13px;
+  font-size: 12px;
   width: 100%;
   background: #100d1c;
   color: var(--ink);

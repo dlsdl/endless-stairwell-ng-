@@ -252,8 +252,8 @@ export function expansion(base: DValue, level: DValue): D {
  * Hardy 层级 H_α(10)：α 由 level 的十进制数位按 Cantor 范式展开得到。
  * 本作用它来生成怪物血量 —— 怪物等级每提高一点，血量都会跃升一个层级。
  */
-export function hardy(level: number): D {
-  return new D(MN.hardy(level))
+export function hardy(level: DValue): D {
+  return new D(MN.hardy(D.from(level).v))
 }
 
 /** 线性插值/夹紧（number 版） */

@@ -58,17 +58,17 @@ export function globalMult(): D {
 
 /**
  * 可可蜂蜜提供的 XP 倍率（参考游戏 cocoaBoost）：
- * cocoaBoost = 4 ^ (可可蜂蜜 ^ 0.8)
+ * cocoaBoost = 4 ^ (可可蜂蜜 ^ 0.75)
  */
 export function cocoaXpMult(): D {
   const cocoa = D.from(state.res.cocoa)
-  return d(4).pow(cocoa.pow(0.8))
+  return d(4).pow(cocoa.pow(0.75))
 }
 
 /** 蜂蜜消耗后留下的临时 XP 加成 */
 export function honeyBuffMult(): D {
   const eaten = D.from(state.stats.honeyEaten)
-  return eaten.add(1).pow(0.15)
+  return eaten.add(1).pow(0.25)
 }
 
 export function xpMult(): D {
@@ -89,8 +89,8 @@ export function xpMult(): D {
 export function dmgMult(): D {
   let m = globalMult()
   m = m.mul(d(1).add(state.permRunes.red * 0.1))
-  if (state.buffTime.red > 0) m = m.mul(1.5)
-  if (has('blood_gun')) m = m.mul(2)
+  if (state.buffTime.red > 0) m = m.mul(2)
+  if (has('blood_gun')) m = m.mul(2.5)
   return m
 }
 
@@ -137,8 +137,8 @@ export function maxEnergy(): D {
 export function energyRegen(): D {
   let r = d(BASE_ENERGY_REGEN)
   r = r.mul(d(1).add(state.permRunes.blue * 0.1))
-  if (state.buffTime.blue > 0) r = r.mul(1.5)
-  if (has('comb_hypergem')) r = r.mul(2)
+  if (state.buffTime.blue > 0) r = r.mul(2)
+  if (has('comb_hypergem')) r = r.mul(2.5)
   return r
 }
 
@@ -152,8 +152,8 @@ export function attackCooldown(): number {
 /** 物品发现率倍率 */
 export function itemFind(): D {
   let m = d(1).add(state.permRunes.green * 0.1)
-  if (state.buffTime.green > 0) m = m.mul(1.5)
-  if (has('altar_shadowring')) m = m.mul(2)
+  if (state.buffTime.green > 0) m = m.mul(2)
+  if (has('altar_shadowring')) m = m.mul(2.5)
   return m
 }
 
@@ -282,94 +282,91 @@ export function bloodPerSecond(): D {
  * ------------------------------------------------------------------ */
 
 /* ------------------------------------------------------------------ *
- * 怪物血量：与参考游戏 Endless Stairwell 的分层公式保持一致
- * 参考：script.js 中 monsterEncounter() 的 if/else 链 + constants.js 的 monsters 表
+ * 楼层 → hardy(n) 的 n
+ *   1~200   线性：1~50 每层 +1、51~100 每层 +2、101~150 每层 +5、151~200 每层 +12
+ *   201~500 指数：n = 1000 × (1e10/1000)^((楼层-200)/300)
+ *   500+    迭代幂：n = 10 ↑↑ x，x 从 2 开始，
+ *            501~10000 每层 +0.001、10001~1e5 每层 +0.01、
+ *            1e5~1e6 每层 +0.1、1e6 以上每层 +1
+ *   n 的上限：10 ↑↑ MAX_SAFE_INTEGER
  * ------------------------------------------------------------------ */
 
-interface HardyBand {
-  /** 该区间的最大楼层 */
-  max: number
-  /** hardy 参数 n 的区间起点 / 终点 */
-  nStart: number
-  nEnd: number
-  /** 4 种怪物的基础伤害 */
-  damage: number[]
+/** n 的迭代幂高度上限 */
+const MAX_TETR_HEIGHT = 9007199254740991
+
+/** 1~200 层：分段线性 */
+function linearLevel(floor: number): D {
+  if (floor <= 50) return d(1 + (floor - 1))
+  if (floor <= 100) return d(50 + (floor - 50) * 2)
+  if (floor <= 150) return d(150 + (floor - 100) * 5)
+  return d(400 + (floor - 150) * 12)
 }
 
-/** [楼层区间 → hardy(n) 的 n 区间] 对照表 */
-export const HARDY_BANDS: HardyBand[] = [
-  { max: 50, nStart: 1, nEnd: 60, damage: [10, 8, 12, 12] },
-  { max: 100, nStart: 61, nEnd: 120, damage: [45, 80, 140, 220] },
-  { max: 150, nStart: 121, nEnd: 320, damage: [80, 100, 120, 130] },
-  { max: 200, nStart: 321, nEnd: 1000, damage: [10, 12, 16, 18] },
-  { max: 250, nStart: 1001, nEnd: 10000, damage: [10, 11, 12, 13] },
-  { max: 300, nStart: 10001, nEnd: 1e6, damage: [10, 11, 12, 13] },
-  { max: 350, nStart: 1e6, nEnd: 1e8, damage: [10, 11, 12, 13] },
-  { max: 400, nStart: 1e8, nEnd: 1e10, damage: [10, 11, 12, 13] },
-  { max: 450, nStart: 1e10, nEnd: 1e11, damage: [10, 11, 12, 13] },
-  { max: 500, nStart: 1e11, nEnd: 1e12, damage: [10, 11, 12, 13] },
-]
+/** 201~500 层：指数增长（200 层 = 1,000，500 层 = 1e10） */
+function exponentialLevel(floor: number): D {
+  const start = 1000
+  const mid = 1e6
+  const end = 1e10
+  if (floor <= 350) return d(start).mul(d(mid / start).pow(d(floor - 200).div(150)))
+  return d(mid).mul(d(end / mid).pow(d(floor - 350).div(150)))
+}
 
-/** 500 层以上按同样趋势外推，n 上限 1e15 */
-const HARDY_N_CAP = 1e15
-
-/** 返回楼层所属区间下标，-1 表示超过 500 层 */
-function bandIndexOf(floor: number): number {
-  for (let i = 0; i < HARDY_BANDS.length; i++) {
-    if (floor <= HARDY_BANDS[i].max) return i
+/** 500 层以上的迭代幂高度 x */
+function tetrationalHeight(floor: number): D {
+  let x = 2
+  let rest = floor - 500
+  const take = (size: number, step: number): boolean => {
+    const used = Math.min(rest, size)
+    x += used * step
+    rest -= used
+    return rest > 0
   }
-  return -1
+  if (!take(10000 - 500, 0.001)) return d(x) // 501 ~ 10000 层
+  if (!take(1e5 - 1e4, 0.01)) return d(x) // 10001 ~ 1e5 层
+  if (!take(1e6 - 1e5, 0.1)) return d(x) // 1e5 ~ 1e6 层
+  x += rest // 1e6 层以上
+  return D.min(d(x), d(MAX_TETR_HEIGHT))
 }
 
-/** 区间内难度 1~4（用于怪物伤害） */
-export function difficultyOf(floor: number): number {
-  const i = bandIndexOf(floor)
-  if (i < 0) return 4
-  const start = i === 0 ? 1 : HARDY_BANDS[i - 1].max + 1
-  const t = (floor - start) / Math.max(1, HARDY_BANDS[i].max - start)
-  return 1 + 3 * Math.max(0, Math.min(1, t))
+/**
+ * 怪物等级 = hardy 的参数 n。
+ * 注意：1~500 层的 n 必须取整 —— hardy 会把「数位」当成序数系数展开，
+ * 小数会让结果暴涨甚至导致库内部递归溢出。
+ */
+export function monsterLevel(floor: number): D {
+  const f = Math.max(1, Math.floor(floor))
+  if (f <= 200) return linearLevel(f)
+  if (f <= 500) return exponentialLevel(f).round()
+  return d(10).tetr(tetrationalHeight(f))
 }
 
 const hardyCache = new Map<number, D>()
 
-function hardyOf(n: number): D {
-  const cached = hardyCache.get(n)
+/** hardy(n) 按楼层缓存（大数计算较重） */
+function hardyOfFloor(floor: number): D {
+  const cached = hardyCache.get(floor)
   if (cached !== undefined) return cached
-  const value = hardy(n)
-  hardyCache.set(n, value)
+  let value: D
+  try {
+    value = hardy(monsterLevel(floor))
+  } catch {
+    // 极端情况下 metanum 可能溢出，退化为一个仍然巨大的有限值
+    value = d(10).tetr(d(1e6))
+  }
+  if (!value.isFinite()) value = d(10).tetr(d(1e6))
+  hardyCache.set(floor, value)
   return value
 }
 
-/**
- * 怪物等级 = hardy 的参数 n：按楼层在对应区间内线性插值。
- * 注意 hardy 对小数会按「数位 → 序数」展开（例如 hardy(50.5) 远大于 hardy(50)），
- * 所以 n 必须取整。
- */
-export function monsterLevel(floor: number): number {
-  const f = Math.max(1, Math.floor(floor))
-  const i = bandIndexOf(f)
-  if (i < 0) {
-    // 500 层以上继续外推：每 50 层 n 放大 10 倍
-    return Math.max(1, Math.round(Math.min(1e12 * Math.pow(10, (f - 500) / 50), HARDY_N_CAP)))
-  }
-  const band = HARDY_BANDS[i]
-  const start = i === 0 ? 1 : HARDY_BANDS[i - 1].max + 1
-  const t = (f - start) / Math.max(1, band.max - start)
-  return Math.max(1, Math.round(band.nStart + (band.nEnd - band.nStart) * t))
-}
-
-/** 怪物血量 = MetaNum.hardy(怪物等级)（BOSS 额外 ×10） */
+/** 怪物血量 = MetaNum.hardy(n)（BOSS 额外 ×10） */
 export function monsterMaxHp(floor: number, _tier: number, boss: boolean): D {
-  const hp = hardyOf(monsterLevel(floor))
+  const hp = hardyOfFloor(floor)
   return boss ? hp.mul(10) : hp
 }
 
-/**
- * 怪物伤害 = hardy(怪物等级) / 10（BOSS 为完整血量）。
- * 与血量同源，因此深层怪物同样具备威胁（修复了 101 层以后伤害为 0 的问题）。
- */
+/** 怪物伤害 = hardy(n) / 10（BOSS 为完整血量） */
 export function monsterDamage(floor: number, _tier: number, boss: boolean): D {
-  const hp = hardyOf(monsterLevel(floor))
+  const hp = hardyOfFloor(floor)
   return boss ? hp : hp.div(10)
 }
 

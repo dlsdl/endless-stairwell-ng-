@@ -51,7 +51,8 @@ function setupHotkeys(): void {
         else enterRoom()
         break
       case 'ArrowLeft':
-        returnToStairwell()
+        // 战斗中无法返回楼梯间（只能逃跑）
+        if (!state.monster) returnToStairwell()
         break
       case 'a':
       case 'A':

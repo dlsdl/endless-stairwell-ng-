@@ -39,7 +39,7 @@ export const ALTAR_UPGRADES: UpgradeDef[] = [
   {
     id: 'altar_keepxp',
     name: '记忆残留',
-    desc: '转生时保留 5,000 点经验值',
+    desc: '转生时保留 1,000 点经验值',
     currency: 'cocoa',
     cost: d(2),
   },
@@ -492,9 +492,9 @@ export const PRESTIGES: PrestigeDef[] = [
     button: '献祭等级',
     desc: '重置角色等级、经验、楼层与蜂蜜，换取可可蜂蜜。可可蜂蜜会永久提升经验获取。',
     currency: 'cocoa',
-    can: (s) => s.level.gte(500),
-    reqText: (s) => `需要等级 500（当前 ${s.level.formatWhole()}）`,
-    gain: (s) => s.level.pow(3).div(1e7),
+    can: (s) => s.level.gte(1000),
+    reqText: (s) => `需要等级 1000（当前 ${s.level.formatWhole()}）`,
+    gain: (s) => s.level.pow(3).div(1e9),
   },
   {
     id: 'plasm',
@@ -504,7 +504,7 @@ export const PRESTIGES: PrestigeDef[] = [
     currency: 'plasm',
     can: (s) => s.res.cocoa.gte(1e10),
     reqText: (s) => `需要 10,000,000,000 可可蜂蜜（当前 ${s.res.cocoa.format()}）`,
-    gain: (s) => s.res.cocoa.div(1e10).pow(0.5),
+    gain: (s) => s.res.cocoa.div(1e10).add(10).log(10),
   },
   {
     id: 'orb',

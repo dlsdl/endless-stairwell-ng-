@@ -53,7 +53,9 @@ export const MONSTER_NAMES: Record<number, string[]> = {
   5: ['宝石鳗幼体', '等离子水母', '棱镜猎犬', '超新星飞蛾', '蜂浆元素'],
   6: ['虚空阶梯管理员', '超浆吞噬者', '逆流时钟', '不可名状之手', '坍缩信徒'],
   7: ['血肉建筑师', '猩红唱诗班', '骨髓编舞者', '猩红十字镐', '红色回廊管理员'],
-  8: ['黄金鳗', '不朽的看门人', '恒星阶梯', '白金主教', '∞ 号住户'],
+  8: ['黄金鳗', '不朽的看门人', '恒星阶梯', '白金主教', '∞号住户'],
+  9: ['逆模因蝶', '概念锈蚀者', '遗忘之喉', '因果拾荒者', '第零人称'],
+  10: ['叙事缝合师', '空白书页', '标点暴君', '脚注吞噬者', '元叙事寄生虫']
 }
 
 export interface TeleportDef {
@@ -65,7 +67,7 @@ export const TELEPORTS: TeleportDef[] = [
   { floor: 50, requires: () => true },
   { floor: 100, requires: () => true },
   { floor: 150, requires: () => has('altar_teleport') && has('altar_teleport') },
-  { floor: 200, requires: () => has('altar_teleport') && has('plasm_tp150') },
+  { floor: 200, requires: () => has('altar_teleport') && has('plasm_tp200') },
   { floor: 250, requires: () => has('altar_teleport') && has('comb_tp250') },
   { floor: 300, requires: () => has('altar_teleport') && has('comb_tp300') },
   { floor: 350, requires: () => has('altar_teleport') && has('golden_tp350') },
@@ -253,8 +255,8 @@ function killMonster(): void {
 
   let xp = M.monsterXp(floor, tier, m.boss).mul(M.xpMult())
   if (!has('plasm_nocap')) {
-    // 参考游戏同样存在经验软上限（可在蜂浆商店购买「移除经验软上限」解除）
-    const cap = M.xpToNext(D.from(state.level)).mul(100)
+    // 经验软上限（可在蜂浆商店购买「移除经验软上限」解除）
+    const cap = M.xpToNext(D.from(state.level)).mul(1000)
     if (xp.gt(cap)) xp = cap
   }
   addXp(xp)
@@ -276,10 +278,6 @@ function killMonster(): void {
   state.monster = null
   state.roomKind = 'none'
   state.roomMessage = '房间被清空了，地上只剩下几滴蜂蜜。'
-  if (state.settings.autoFloor && D.from(state.energy).gte(M.ENTER_ROOM_COST)) {
-    state.energy = D.from(state.energy).sub(M.ENTER_ROOM_COST)
-    generateRoom()
-  }
 }
 
 function rollDrops(floor: number, tier: number, boss: boolean): string[] {
@@ -362,6 +360,10 @@ function die(): void {
 /* ------------------------------------------------------------------ *
  * 主循环
  * ------------------------------------------------------------------ */
+
+/** 自动探索的计时器（每秒探索一次） */
+let autoFloorAcc = 0
+
 export function tick(dt: number): void {
   state.playTime += dt
 
@@ -403,6 +405,20 @@ export function tick(dt: number): void {
 
   if (state.settings.autoAttack && state.monster && state.inRoom && state.attackCooldown <= 0) {
     if (D.from(state.energy).gte(M.ATTACK_COST)) attack()
+  }
+
+  // 自动探索：每秒尝试探索一个新房间（能量不足时静默跳过，避免刷屏）
+  if (state.settings.autoFloor) {
+    autoFloorAcc += dt
+    if (autoFloorAcc >= 1) {
+      autoFloorAcc -= 1
+      if (D.from(state.energy).gte(M.ENTER_ROOM_COST)) {
+        if (!state.inRoom) enterRoom()
+        else if (!state.monster) anotherRoom()
+      }
+    }
+  } else {
+    autoFloorAcc = 0
   }
 }
 
@@ -549,7 +565,7 @@ export function doPrestige(id: string): void {
   // 祭坛转生
   const gain = def.gain(state).mul(M.cocoaGainMult())
   state.stats.altars = D.from(state.stats.altars).add(1)
-  state.totalXp = has('altar_keepxp') ? d(5000) : d(0)
+  state.totalXp = has('altar_keepxp') ? d(1000) : d(0)
   syncLevel()
   state.floor = 0
   state.inRoom = false

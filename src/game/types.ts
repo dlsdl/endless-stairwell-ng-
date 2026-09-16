@@ -35,8 +35,8 @@ export type RoomKind = 'none' | 'monster' | 'chest' | 'shrine'
 
 export interface MonsterState {
   name: string
-  /** 怪物等级，血量 = MetaNum.hardy(等级) */
-  level: number
+  /** 怪物等级（hardy 的参数 n），血量 = MetaNum.hardy(等级) */
+  level: D
   tier: number
   floor: number
   hp: D

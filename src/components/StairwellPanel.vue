@@ -28,10 +28,9 @@ const canEnter = computed(() => D.from(state.energy).gte(ENTER_ROOM_COST))
 const canAttack = computed(() => D.from(state.energy).gte(ATTACK_COST) && state.attackCooldown <= 0)
 const canFlee = computed(() => D.from(state.energy).gte(FLEE_COST))
 
-/** 怪物等级（hardy 的 n）可能非常大，做成易读的显示 */
-function formatLevel(n: number): string {
-  if (n < 9e15) return n.toLocaleString('en-US')
-  return n.toExponential(3).replace('e+', 'e')
+/** 怪物等级（hardy 的参数 n）可能非常大，做成易读的显示 */
+function formatLevel(n: D): string {
+  return n.lt(1e6) ? n.formatWhole() : n.format(3)
 }
 </script>
 
@@ -95,6 +94,9 @@ function formatLevel(n: number): string {
           </button>
           <button class="btn" :disabled="!canFlee" @click="flee()">逃跑 <span class="kbd">F</span></button>
         </div>
+        <div class="sub" style="margin-top: 4px">
+          战斗中无法返回楼梯间，只能选择「逃跑」（消耗 20 能量）。
+        </div>
       </template>
 
       <template v-else>
@@ -106,13 +108,15 @@ function formatLevel(n: number): string {
       </template>
 
       <div class="row" style="margin-top: 8px">
-        <button class="btn small" @click="returnToStairwell()">返回楼梯间 <span class="kbd">←</span></button>
+        <button class="btn small" :disabled="!!monster" @click="returnToStairwell()">
+          返回楼梯间 <span class="kbd">←</span>
+        </button>
         <button
           class="btn small"
           :class="{ primary: state.settings.autoFloor }"
           @click="state.settings.autoFloor = !state.settings.autoFloor"
         >
-          自动探索：{{ state.settings.autoFloor ? '开' : '关' }}
+          自动探索（1 次/秒）：{{ state.settings.autoFloor ? '开' : '关' }}
         </button>
       </div>
     </template>
