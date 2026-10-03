@@ -1,0 +1,123 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\Users\\z\u0027x\u0027c\\Desktop\\endless_stairwell_ng\u002B\u002B\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\z\u0027x\u0027c\\Desktop\\endless_stairwell_ng\u002B\u002B\\src\\game\\content.ts||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:src\\game\\content.ts||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\z\u0027x\u0027c\\Desktop\\endless_stairwell_ng\u002B\u002B\\src\\game\\multipliers.ts||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:src\\game\\multipliers.ts||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\z\u0027x\u0027c\\Desktop\\endless_stairwell_ng\u002B\u002B\\src\\game\\actions.ts||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:src\\game\\actions.ts||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\z\u0027x\u0027c\\Desktop\\endless_stairwell_ng\u002B\u002B\\src\\game\\loop.ts||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:src\\game\\loop.ts||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\z\u0027x\u0027c\\Desktop\\endless_stairwell_ng\u002B\u002B\\src\\components\\panels\\RunesPanel.vue||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:src\\components\\panels\\RunesPanel.vue||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 1,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedHeight": 370,
+          "SelectedChildIndex": 4,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "RunesPanel.vue",
+              "DocumentMoniker": "C:\\Users\\z\u0027x\u0027c\\Desktop\\endless_stairwell_ng\u002B\u002B\\src\\components\\panels\\RunesPanel.vue",
+              "RelativeDocumentMoniker": "src\\components\\panels\\RunesPanel.vue",
+              "ToolTip": "C:\\Users\\z\u0027x\u0027c\\Desktop\\endless_stairwell_ng\u002B\u002B\\src\\components\\panels\\RunesPanel.vue",
+              "RelativeToolTip": "src\\components\\panels\\RunesPanel.vue",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABkAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003491|",
+              "WhenOpened": "2026-10-03T10:03:22.635Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "multipliers.ts",
+              "DocumentMoniker": "C:\\Users\\z\u0027x\u0027c\\Desktop\\endless_stairwell_ng\u002B\u002B\\src\\game\\multipliers.ts",
+              "RelativeDocumentMoniker": "src\\game\\multipliers.ts",
+              "ToolTip": "C:\\Users\\z\u0027x\u0027c\\Desktop\\endless_stairwell_ng\u002B\u002B\\src\\game\\multipliers.ts",
+              "RelativeToolTip": "src\\game\\multipliers.ts",
+              "ViewState": "AgIAADcAAAAAAAAAAAAUwE4AAAArAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
+              "WhenOpened": "2026-10-03T07:40:34.839Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "loop.ts",
+              "DocumentMoniker": "C:\\Users\\z\u0027x\u0027c\\Desktop\\endless_stairwell_ng\u002B\u002B\\src\\game\\loop.ts",
+              "RelativeDocumentMoniker": "src\\game\\loop.ts",
+              "ToolTip": "C:\\Users\\z\u0027x\u0027c\\Desktop\\endless_stairwell_ng\u002B\u002B\\src\\game\\loop.ts",
+              "RelativeToolTip": "src\\game\\loop.ts",
+              "ViewState": "AgIAAEAAAAAAAAAAAAAEwFAAAAA5AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
+              "WhenOpened": "2026-10-03T07:40:29.619Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "actions.ts",
+              "DocumentMoniker": "C:\\Users\\z\u0027x\u0027c\\Desktop\\endless_stairwell_ng\u002B\u002B\\src\\game\\actions.ts",
+              "RelativeDocumentMoniker": "src\\game\\actions.ts",
+              "ToolTip": "C:\\Users\\z\u0027x\u0027c\\Desktop\\endless_stairwell_ng\u002B\u002B\\src\\game\\actions.ts",
+              "RelativeToolTip": "src\\game\\actions.ts",
+              "ViewState": "AgIAAJsBAAAAAAAAAAAewKgBAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
+              "WhenOpened": "2026-10-03T07:39:07.586Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "content.ts",
+              "DocumentMoniker": "C:\\Users\\z\u0027x\u0027c\\Desktop\\endless_stairwell_ng\u002B\u002B\\src\\game\\content.ts",
+              "RelativeDocumentMoniker": "src\\game\\content.ts",
+              "ToolTip": "C:\\Users\\z\u0027x\u0027c\\Desktop\\endless_stairwell_ng\u002B\u002B\\src\\game\\content.ts",
+              "RelativeToolTip": "src\\game\\content.ts",
+              "ViewState": "AgIAAFUAAAAAAAAAAAAAAGgAAAAEAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
+              "WhenOpened": "2026-10-03T07:39:03.894Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{34e76e81-ee4a-11d0-ae2e-00a0c90fffc3}"
+            }
+          ]
+        },
+        {
+          "DockedHeight": 81,
+          "SelectedChildIndex": -1,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:1:0:{d212f56b-c48a-434c-a121-1c5d80b59b9f}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{28836128-fc2c-11d2-a433-00c04f72d18a}"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

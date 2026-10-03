@@ -25,7 +25,7 @@ export function tierOf(floor: number): number {
 /** 作用于几乎所有产出的全局倍率 */
 export function globalMult(): D {
   let m = d(1)
-  if (has('altar_shadowring')) m = m.mul(2)
+  if (has('altar_shadowring')) m = m.mul(10)
   if (has('plasm_shark')) m = m.mul(5)
   if (has('comb_hypergem')) m = m.mul(10)
   if (has('blood_supergem')) m = m.mul(8)
@@ -57,12 +57,12 @@ export function globalMult(): D {
 }
 
 /**
- * 可可蜂蜜提供的 XP 倍率（参考游戏 cocoaBoost）：
- * cocoaBoost = 4 ^ (可可蜂蜜 ^ 0.75)
+ * 可可蜂蜜提供的 XP 倍率：
+ * cocoaBoost * 可可蜂蜜+1
  */
 export function cocoaXpMult(): D {
   const cocoa = D.from(state.res.cocoa)
-  return d(4).pow(cocoa.pow(0.75))
+  return cocoa.add(1)
 }
 
 /** 蜂蜜消耗后留下的临时 XP 加成 */
@@ -73,9 +73,10 @@ export function honeyBuffMult(): D {
 
 export function xpMult(): D {
   let m = globalMult().mul(cocoaXpMult()).mul(honeyBuffMult())
-  m = m.mul(d(1).add(state.permRunes.red * 0.05))
-  if (has('altar_xp')) m = m.mul(1.5)
-  if (state.buffTime.red > 0) m = m.mul(1.75)
+  m = m.mul(d(1).add(state.permRunes.red * 0.1))
+  if (state.buffTime.red > 0) m = m.mul(1.25)
+  if (has('altar_xp')) m = m.mul(4)
+  if (has('altar_shadowring')) m = m.mul(10)
   if (has('comb_tier6xp1')) m = m.mul(3)
   if (has('comb_tier6xp2')) m = m.mul(3)
   if (has('comb_tier6xp3')) m = m.mul(3)
@@ -85,12 +86,25 @@ export function xpMult(): D {
   return m
 }
 
+/** 单次获得经验的软上限：超过该值的部分按 0.25 次方缩放 */
+export const XP_SOFTCAP = d(1e4)
+
+/**
+ * 经验软上限：一次获得超过 1e4 经验后，收益变为 1e4 × (获得/1e4)^0.25。
+ * 例如 160000→20000、1e8→1e5、1e12→1e6；1e4 以内不受影响（曲线在软上限处连续）。
+ */
+export function applyXpSoftcap(xp: D): D {
+  if (xp.lte(XP_SOFTCAP)) return xp
+  return XP_SOFTCAP.mul(xp.div(XP_SOFTCAP).pow(0.25))
+}
+
 // 伤害倍率
 export function dmgMult(): D {
   let m = globalMult()
   m = m.mul(d(1).add(state.permRunes.red * 0.1))
-  if (state.buffTime.red > 0) m = m.mul(2)
-  if (has('blood_gun')) m = m.mul(2.5)
+  if (state.buffTime.red > 0) m = m.mul(1.25)
+  if (has('altar_xp')) m = m.mul(4)
+  if (has('blood_gun')) m = m.tetr(2)
   return m
 }
 
@@ -113,7 +127,7 @@ export function playerDamage(): D {
 export function playerMaxHp(): D {
   const base = d(10).mul(d(1.1).pow(D.from(state.level).sub(1)))
   let m = globalMult().pow(0.6)
-  if (has('altar_shadowring')) m = m.mul(2)
+  if (has('altar_shadowring')) m = m.mul(10)
   return base.mul(m)
 }
 
@@ -128,7 +142,6 @@ export function hpRegen(): D {
 export function maxEnergy(): D {
   let e = d(100)
   if (has('altar_energy')) e = e.add(100)
-  if (has('altar_shadowring')) e = e.add(50)
   if (has('plasm_shark')) e = e.add(100)
   return e
 }
@@ -137,8 +150,8 @@ export function maxEnergy(): D {
 export function energyRegen(): D {
   let r = d(BASE_ENERGY_REGEN)
   r = r.mul(d(1).add(state.permRunes.blue * 0.1))
-  if (state.buffTime.blue > 0) r = r.mul(2)
-  if (has('comb_hypergem')) r = r.mul(2.5)
+  if (state.buffTime.blue > 0) r = r.mul(1.25)
+  if (has('comb_hypergem')) r = r.mul(4)
   return r
 }
 
@@ -152,14 +165,14 @@ export function attackCooldown(): number {
 /** 物品发现率倍率 */
 export function itemFind(): D {
   let m = d(1).add(state.permRunes.green * 0.1)
-  if (state.buffTime.green > 0) m = m.mul(2)
-  if (has('altar_shadowring')) m = m.mul(2.5)
+  if (state.buffTime.green > 0) m = m.mul(1.25)
+  if (has('altar_shadowring')) m = m.mul(4)
   return m
 }
 
 /** 祭坛转生获得的可可蜂蜜倍率 */
 export function cocoaGainMult(): D {
-  let m = globalMult().mul(d(1).add(D.from(state.res.plasm).pow(0.6)))
+  let m = globalMult().mul(d(1).add(D.from(state.res.plasm).pow(0.5)))
   if (has('plasm_cocoa2')) m = m.mul(2)
   if (has('plasm_cocoa2b')) m = m.mul(2)
   if (has('golden_double1')) m = m.mul(2)
@@ -168,11 +181,12 @@ export function cocoaGainMult(): D {
   if (has('comb_hypergain')) m = m.mul(50)
   if (has('comb_starboost')) {
     const stars = D.from(state.res.starBar)
-    if (stars.gt(0)) m = m.mul(stars.add(1).pow(0.75))
+    if (stars.gt(0)) m = m.mul(stars.add(1))
   }
-  const vanilla = D.from(state.res.vanilla)
+    const vanilla = D.from(state.res.vanilla)
+  //祭坛升级3
   if (has('altar_vanilla') && vanilla.gt(0)) {
-    m = m.mul(d(1).add(vanilla.add(1).log10()).mul(2))
+    m = m.mul(vanilla.add(1).pow(0.5))
   }
   return applyCocoaHyperBonus(m)
 }
@@ -294,34 +308,32 @@ export function bloodPerSecond(): D {
 /** n 的迭代幂高度上限 */
 const MAX_TETR_HEIGHT = 9007199254740991
 
-/** 1~200 层：分段线性 */
+/** 1~300 层：分段线性 */
 function linearLevel(floor: number): D {
   if (floor <= 50) return d(1 + (floor - 1))
   if (floor <= 100) return d(50 + (floor - 50) * 2)
-  if (floor <= 150) return d(150 + (floor - 100) * 5)
-  return d(400 + (floor - 150) * 12)
+  if (floor <= 150) return d(150 + (floor - 100) * 3)
+  if (floor <= 200) return d(300 + (floor - 150) * 4)
+  return d(500 + (floor - 200) * 5)
 }
 
-/** 201~500 层：指数增长（200 层 = 1,000，500 层 = 1e10） */
+/** 301~1000 层：指数增长（300 层 = 1,000，1000 层 = 1e10） */
 function exponentialLevel(floor: number): D {
   const start = 1000
-  const mid = 1e6
-  const end = 1e10
-  if (floor <= 350) return d(start).mul(d(mid / start).pow(d(floor - 200).div(150)))
-  return d(mid).mul(d(end / mid).pow(d(floor - 350).div(150)))
+  return d(start).mul(d(10).pow(d(floor - 300).div(100)))
 }
 
-/** 500 层以上的迭代幂高度 x */
+/** 1000 层以上的迭代幂高度 x */
 function tetrationalHeight(floor: number): D {
   let x = 2
-  let rest = floor - 500
+  let rest = floor - 1000
   const take = (size: number, step: number): boolean => {
     const used = Math.min(rest, size)
     x += used * step
     rest -= used
     return rest > 0
   }
-  if (!take(10000 - 500, 0.001)) return d(x) // 501 ~ 10000 层
+  if (!take(10000 - 1000, 0.001)) return d(x) // 1001 ~ 10000 层
   if (!take(1e5 - 1e4, 0.01)) return d(x) // 10001 ~ 1e5 层
   if (!take(1e6 - 1e5, 0.1)) return d(x) // 1e5 ~ 1e6 层
   x += rest // 1e6 层以上
@@ -335,8 +347,8 @@ function tetrationalHeight(floor: number): D {
  */
 export function monsterLevel(floor: number): D {
   const f = Math.max(1, Math.floor(floor))
-  if (f <= 200) return linearLevel(f)
-  if (f <= 500) return exponentialLevel(f).round()
+  if (f <= 300) return linearLevel(f)
+  if (f <= 1000) return exponentialLevel(f).round()
   return d(10).tetr(tetrationalHeight(f))
 }
 
@@ -371,37 +383,34 @@ export function monsterDamage(floor: number, _tier: number, boss: boolean): D {
 }
 
 /**
- * 击杀经验：按血量的「量级」缩放，使每层所需击杀数大致恒定。
- * 攻击力 = 10 × 1.1^(等级-1)，打掉血量 H 需要等级 ≈ 24·log₁₀(H)；
- * 而等级 = √(总经验/20)，所以经验取 (log₁₀ 血量)² 量级最合适。
+ * 击杀经验
  */
 export function monsterXp(floor: number, tier: number, boss: boolean): D {
   const hp = monsterMaxHp(floor, tier, boss)
-  let xp = hp.log10().pow(4).mul(10)
+  let xp = hp.log10().pow(4)
+  if (boss) xp = xp.mul(2)
   if (has('comb_tier6xp1') && tier >= 6) xp = xp.mul(2)
   if (has('blood_tier7xp1') && tier >= 7) xp = xp.mul(2)
-  if (boss) xp = xp.mul(25)
   return xp
 }
 
-/* ------------------------------------------------------------------ *
- * 等级（与参考游戏一致：累计经验 = 20 × (等级-1)²）
- * ------------------------------------------------------------------ */
-
+/**
+ * 等级
+ */
 /** 升到 level 级所需的累计经验 */
 export function totalXpForLevel(level: D): D {
-  return level.sub(1).pow(2).mul(10)
+  return level.sub(1).pow(2)
 }
 
 /** 由累计经验反解等级（闭式解，避免天文数字下的循环升级） */
 export function levelFromTotalXp(totalXp: D): D {
   if (totalXp.lte(0)) return d(1)
-  return totalXp.div(10).sqrt().add(1).floor().max(1)
+  return totalXp.sqrt().add(1).floor().max(1)
 }
 
 /** 当前等级升到下一级还需要的经验 */
 export function xpToNext(level: D): D {
-  return d(10).mul(level.mul(2).sub(1))
+  return level.mul(2).sub(1)
 }
 
 /** 楼层难度（黄金升级用） */

@@ -7,13 +7,14 @@ import {
   flee,
   goDown,
   goUp,
+  isGateFloor,
   returnToStairwell,
   TELEPORTS,
   teleport,
   toGround,
 } from '@/game/actions'
 import { ATTACK_COST, ENTER_ROOM_COST, FLEE_COST, tierOf } from '@/game/multipliers'
-import { D } from '@/game/num'
+import { D, formatInt } from '@/game/num'
 import { state } from '@/game/state'
 
 const tier = computed(() => tierOf(state.floor))
@@ -27,11 +28,10 @@ const unlockedTeleports = computed(() => TELEPORTS.filter((t) => t.requires()))
 const canEnter = computed(() => D.from(state.energy).gte(ENTER_ROOM_COST))
 const canAttack = computed(() => D.from(state.energy).gte(ATTACK_COST) && state.attackCooldown <= 0)
 const canFlee = computed(() => D.from(state.energy).gte(FLEE_COST))
-
-/** 怪物等级（hardy 的参数 n）可能非常大，做成易读的显示 */
-function formatLevel(n: D): string {
-  return n.lt(1e6) ? n.formatWhole() : n.format(3)
-}
+/** 是否站在尚未通关的关口层（50~500 中 50 的倍数） */
+const gateBlocked = computed(
+  () => isGateFloor(state.floor) && !state.clearedGates.includes(state.floor),
+)
 </script>
 
 <template>
@@ -69,6 +69,9 @@ function formatLevel(n: D): string {
       <div class="sub" style="margin-top: 6px">
         进入房间消耗 {{ ENTER_ROOM_COST }} 点能量，攻击消耗 {{ ATTACK_COST }} 点能量。
       </div>
+      <div v-if="gateBlocked" class="sub" style="margin-top: 6px; color: var(--pink)">
+        本层的敌人尚未被击败，无法前往第 {{ state.floor + 1 }} 层。
+      </div>
     </template>
 
     <!-- 房间内 -->
@@ -77,7 +80,7 @@ function formatLevel(n: D): string {
 
       <template v-if="monster">
         <div class="monster-head">
-          <b style="color: var(--pink)">Lv.{{ formatLevel(monster.level) }} · {{ monster.name }}</b>
+          <b style="color: var(--pink)">Lv.{{ formatInt(monster.level) }} · {{ monster.name }}</b>
           <span class="sub">{{ monster.tier }} 阶{{ monster.boss ? ' · BOSS' : '' }}</span>
         </div>
         <div class="bar monster" style="margin: 4px 0">
@@ -116,7 +119,7 @@ function formatLevel(n: D): string {
           :class="{ primary: state.settings.autoFloor }"
           @click="state.settings.autoFloor = !state.settings.autoFloor"
         >
-          自动探索（1 次/秒）：{{ state.settings.autoFloor ? '开' : '关' }}
+          自动探索：{{ state.settings.autoFloor ? '开' : '关' }}
         </button>
       </div>
     </template>

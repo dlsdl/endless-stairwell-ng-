@@ -73,6 +73,8 @@ export interface GameState {
   monster: MonsterState | null
   attackCooldown: number
   roomMessage: string
+  /** 已击败敌人、可以通行的关口层（50~500 中 50 的倍数） */
+  clearedGates: number[]
 
   /** 资源 */
   res: Record<CurrencyId, D>

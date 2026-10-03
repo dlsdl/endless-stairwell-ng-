@@ -196,7 +196,6 @@ export class D {
       return this.v.toString()
     }
   }
-
   /** 整数风格显示 */
   formatWhole(): string {
     if (this.v.isNaN()) return 'NaN'
@@ -233,6 +232,18 @@ export function reviveD(_key: string, value: unknown): unknown {
 /** 便捷构造 */
 export function d(value: DValue = 0): D {
   return D.from(value)
+}
+
+/**
+ * 整数风格显示：去掉字母记数法小数部分的全零尾。
+ * 12.000 → 12、1.000E10 → 1E10、E1.000E10 → E1E10；
+ * 1.327F5 这类非零小数保持原样（削掉会严重改变数值含义）。
+ */
+export function formatInt(value: DValue): string {
+  const x = D.from(value)
+  if (x.v.isNaN()) return 'NaN'
+  if (!x.v.isFinite()) return '∞'
+  return x.format(3).replace(/\.0+(?=[A-Za-zε⁻⁰¹²³⁴⁵⁶⁷⁸⁹]|$)/g, '')
 }
 
 /** base ↑^arrows operand（超运算，arrows 为箭号数量） */

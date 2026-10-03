@@ -1,4 +1,4 @@
-import { D, d, formatTime } from './num'
+import { D, d, formatInt, formatTime } from './num'
 import {
   addRes,
   canAfford,
@@ -66,11 +66,11 @@ export interface TeleportDef {
 export const TELEPORTS: TeleportDef[] = [
   { floor: 50, requires: () => true },
   { floor: 100, requires: () => true },
-  { floor: 150, requires: () => has('altar_teleport') && has('altar_teleport') },
-  { floor: 200, requires: () => has('altar_teleport') && has('plasm_tp200') },
-  { floor: 250, requires: () => has('altar_teleport') && has('comb_tp250') },
-  { floor: 300, requires: () => has('altar_teleport') && has('comb_tp300') },
-  { floor: 350, requires: () => has('altar_teleport') && has('golden_tp350') },
+  { floor: 150, requires: () => has('altar_teleport') },
+  { floor: 200, requires: () => has('plasm_tp200') },
+  { floor: 250, requires: () => has('comb_tp250') },
+  { floor: 300, requires: () => has('comb_tp300') },
+  { floor: 350, requires: () => has('golden_tp350') },
 ]
 
 export function makeMonster(floor: number, boss = false): MonsterState {
@@ -83,7 +83,8 @@ export function makeMonster(floor: number, boss = false): MonsterState {
     : names[Math.floor(Math.random() * names.length)]
   const maxHp = M.monsterMaxHp(floor, tier, boss)
   const dmg = M.monsterDamage(floor, tier, boss)
-  const interval = 3
+  // 攻击间隔在 1.1 ~ 2.0 秒（步长 0.1）中随机取一个
+  const interval = (11 + Math.floor(Math.random() * 10)) / 10
   return {
     name,
     level: M.monsterLevel(floor),
@@ -101,7 +102,19 @@ export function makeMonster(floor: number, boss = false): MonsterState {
 
 export function goUp(): void {
   if (state.inRoom) return
+  if (isGateFloor(state.floor) && !state.clearedGates.includes(state.floor)) {
+    pushLog(`第 ${state.floor} 层的敌人尚未被击败，无法前往第 ${state.floor + 1} 层。`)
+    return
+  }
   setFloor(state.floor + 1)
+}
+
+/**
+ * 关口层：50~500 层中 50 的倍数。
+ * 击败该层的敌人之前，不能前往上一层。
+ */
+export function isGateFloor(floor: number): boolean {
+  return floor >= 50 && floor <= 500 && floor % 50 === 0
 }
 
 export function goDown(): void {
@@ -166,20 +179,20 @@ function generateRoom(): void {
     state.roomMessage = '地面层的大厅空无一人，只有一盏闪烁的应急灯。'
     return
   }
-  const isBossFloor = state.floor % 25 === 0 && state.floor >= 125
+  const isBossFloor = state.floor % 50 === 0
   if (isBossFloor) {
     state.roomKind = 'monster'
     state.monster = makeMonster(state.floor, true)
-    state.roomMessage = `门后传来沉重的呼吸声——Lv.${state.monster.level} 的${state.monster.name}挡住了去路！`
+    state.roomMessage = `门后传来沉重的呼吸声——Lv.${formatInt(state.monster.level)} 的${state.monster.name}挡住了去路！`
     return
   }
   const roll = Math.random()
-  if (roll < 0.7) {
+  if (roll < 0.6) {
     state.roomKind = 'monster'
     const m = makeMonster(state.floor)
     state.monster = m
-    state.roomMessage = `Lv.${m.level} 的${m.name}从阴影中爬了出来。`
-  } else if (roll < 0.85) {
+    state.roomMessage = `Lv.${formatInt(m.level)} 的${m.name}从阴影中爬了出来。`
+  } else if (roll < 0.9) {
     state.roomKind = 'chest'
     state.monster = null
     openChest()
@@ -197,14 +210,15 @@ function generateRoom(): void {
 function openChest(): void {
   state.stats.chests = D.from(state.stats.chests).add(1)
   const floor = state.floor
-  const honey = d(1).add(Math.floor(floor / 20)).mul(M.itemFind().pow(0.5))
+  const honey = d(1).add(Math.floor(floor / 25)).mul(M.itemFind().pow(0.5))
+  const vanilla = d(1).add(Math.floor((floor - 50) / 25)).mul(M.itemFind().pow(0.5))
   addRes('honey', honey)
   let msg = `你打开了一个落灰的箱子，获得 ${honey.format()} 蜂蜜`
   if (floor >= 50 && Math.random() < 0.5) {
-    addRes('vanilla', 1)
-    msg += '、1 香草蜂蜜'
+    addRes('vanilla', vanilla)
+    msg += `、${vanilla.format()} 香草蜂蜜`
   }
-  if (floor >= 100) {
+  if (floor >= 200) {
     const blood = d(10).pow(Math.max(1, M.tierOf(floor) - 3)).mul(M.bloodGainMult())
     addRes('blood', blood)
     msg += `、${blood.format()} 魔血`
@@ -255,17 +269,18 @@ function killMonster(): void {
 
   let xp = M.monsterXp(floor, tier, m.boss).mul(M.xpMult())
   if (!has('plasm_nocap')) {
-    // 经验软上限（可在蜂浆商店购买「移除经验软上限」解除）
-    const cap = M.xpToNext(D.from(state.level)).mul(1000)
-    if (xp.gt(cap)) xp = cap
+    // 经验软上限：单次获得超过 1e4 后，收益按 0.25 次方缩放
+    // （「移除经验软上限」可在蜂浆商店购买解除）
+    xp = M.applyXpSoftcap(xp)
   }
   addXp(xp)
 
   const drops = rollDrops(floor, tier, m.boss)
-  if (drops.length > 0) {
-    pushLog(`击败 Lv.${m.level} ${m.name}：${drops.join('、')}`)
-  } else {
-    pushLog(`击败 Lv.${m.level} ${m.name}，获得 ${xp.format()} 经验。`)
+  const parts = [`获得 ${xp.format()} 经验`, ...drops]
+  pushLog(`击败 Lv.${formatInt(m.level)} ${m.name}：${parts.join('、')}。`)
+
+  if (isGateFloor(floor) && !state.clearedGates.includes(floor)) {
+    state.clearedGates.push(floor)
   }
 
   if (m.boss && tier >= 5) {
@@ -282,23 +297,24 @@ function killMonster(): void {
 
 function rollDrops(floor: number, tier: number, boss: boolean): string[] {
   const out: string[] = []
-  const findBonus = Math.min(4, M.itemFind().toNumber())
+  const findBonus = Math.min(10, M.itemFind().toNumber())
 
   // 蜂蜜
   let honeyChance = 0.08
   if (floor >= 100 && has('plasm_honeydrop')) honeyChance = 0.25
-  if (Math.random() < Math.min(0.95, honeyChance * findBonus)) {
+  if (Math.random() < Math.min(1, honeyChance * findBonus)) {
     const amount = d(1).add(Math.floor(floor / 25)).mul(M.globalMult().pow(0.2))
     addRes('honey', amount)
     out.push(`${amount.format()} 蜂蜜`)
   }
   // 香草蜂蜜
-  if (floor >= 50 && Math.random() < Math.min(0.6, 0.03 * findBonus)) {
-    addRes('vanilla', 1)
-    out.push('1 香草蜂蜜')
+  if (floor >= 50 && Math.random() < Math.min(1, 0.04 * findBonus)) {
+    const amount = d(1).add(Math.floor((floor - 50) / 25)).mul(M.globalMult().pow(0.1))
+    addRes('vanilla', amount)
+    out.push(`${amount.format()} 香草蜂蜜`)
   }
   // 魔血
-  if (floor >= 100 && Math.random() < Math.min(0.9, 0.1 * findBonus)) {
+  if (floor >= 200 && Math.random() < Math.min(0.9, 0.1 * findBonus)) {
     const amount = d(10).pow(Math.max(1, tier - 3)).mul(M.bloodGainMult())
     addRes('blood', amount)
     out.push(`${amount.format()} 魔血`)
@@ -565,7 +581,7 @@ export function doPrestige(id: string): void {
   // 祭坛转生
   const gain = def.gain(state).mul(M.cocoaGainMult())
   state.stats.altars = D.from(state.stats.altars).add(1)
-  state.totalXp = has('altar_keepxp') ? d(1000) : d(0)
+  state.totalXp = has('altar_keepxp') ? d(10000) : d(0)
   syncLevel()
   state.floor = 0
   state.inRoom = false

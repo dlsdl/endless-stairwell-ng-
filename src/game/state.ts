@@ -26,6 +26,7 @@ export function createInitialState(): GameState {
     monster: null,
     attackCooldown: 0,
     roomMessage: '你站在地面层。楼梯向上延伸，看不到尽头。',
+    clearedGates: [],
 
     res: {
       honey: zero(),
@@ -111,6 +112,9 @@ export function replaceState(next: GameState): void {
   merged.upgrades = { ...(next.upgrades ?? {}) }
   merged.stats = { ...fresh.stats, ...(next.stats ?? {}) }
   merged.settings = { ...fresh.settings, ...(next.settings ?? {}) }
+  merged.clearedGates = Array.isArray(next.clearedGates)
+    ? next.clearedGates.filter((n) => typeof n === 'number')
+    : []
   merged.producers = fresh.producers.map((_, i) => D.from(next.producers?.[i] ?? 0))
   merged.version = SAVE_VERSION
   Object.assign(state, merged)
